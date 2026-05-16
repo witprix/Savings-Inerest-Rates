@@ -1,0 +1,12 @@
+{
+  "unity": [
+    { "limit": 100000, "rate": 4.50, "label": "Slab 1 (Up to 1L)" },
+    { "limit": 900000, "rate": 6.00, "label": "Slab 2 (1L to 10L)" },
+    { "limit": null, "rate": 7.00, "label": "Slab 3 (Above 10L)" }
+  ],
+  "idfc": [
+    { "limit": 300000, "rate": 2.50, "label": "Slab 1 (Up to 3L)" },
+    { "limit": null, "rate": 6.50, "label": "Slab 2 (Above 3L)" }
+  ],
+  "slice": 5.25
+}
