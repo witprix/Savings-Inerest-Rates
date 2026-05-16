@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Live Savings Split Engine</title>
+    <style>
+        :root {
+            --primary: #0f172a; --unity: #7c3aed; --idfc: #2563eb; --slice: #059669; --bg: #f8fafc;
+        }
+        body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg); color: #1e293b; margin: 0; padding: 15px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 20px; }
+        h1 { font-size: 1.5rem; color: var(--primary); margin: 0; }
+        
+        .controls-container {
+            background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 20px;
+            display: flex; flex-direction: column; align-items: center; gap: 15px;
+        }
+        .input-row { display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .input-wrapper { position: relative; }
+        .input-wrapper span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-weight: bold; color: #94a3b8; }
+        input[type="number"] { padding: 10px 10px 10px 30px; font-size: 1.2rem; border: 2px solid #cbd5e1; border-radius: 8px; width: 200px; font-weight: bold; outline: none; }
+        
+        .fetch-btn {
+            background-color: var(--primary); color: white; border: none; padding: 12px 20px; font-size: 1rem; font-weight: 600;
+            border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+        }
+        .status-badge { font-size: 0.85rem; padding: 4px 12px; border-radius: 20px; font-weight: 600; background: #e2e8f0; color: #475569; }
+
+        .comparison-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .bank-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); border-top: 5px solid #cbd5e1; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-unity { border-top-color: var(--unity); } .card-idfc { border-top-color: var(--idfc); } .card-slice { border-top-color: var(--slice); }
+        .bank-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 12px; }
+        
+        .metric-row { display: flex; justify-content: space-between; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 0.9rem; }
+        .metric-value { font-weight: 700; }
+        .split-box { background: #fafafa; border: 1px dashed #e2e8f0; border-radius: 8px; padding: 12px; font-size: 0.82rem; margin-top: 10px; flex-grow: 1; }
+        .split-title { font-weight: 700; color: #475569; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; text-transform: uppercase; font-size: 0.75rem; }
+        
+        .slab-element { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 8px; }
+        .slab-header { font-weight: 700; display: flex; justify-content: space-between; font-size: 0.85rem; }
+        .slab-details { display: flex; justify-content: space-between; color: #64748b; margin-top: 4px; }
+        .sub-yield { font-weight: 700; color: #0f172a; }
+        
+        .source-link-footer { margin-top: 12px; padding-top: 8px; border-top: 1px dashed #e2e8f0; font-size: 0.78rem; color: #64748b; }
+        .source-link-footer a { color: #2563eb; text-decoration: none; font-weight: 600; }
+        @media (max-width: 950px) { .comparison-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header><h1>GitHub-Synced Automated Split Matrix</h1></header>
+
+    <div class="controls-container">
+        <div class="input-row">
+            <label for="balance">Enter Account Balance:</label>
+            <div class="input-wrapper"><span>₹</span><input type="number" id="balance" value="200000" min="0" oninput="calculateSplits()"></div>
+            <button class="fetch-btn" onclick="pullRatesDataFile()">🔄 Fetch Latest Rates</button>
+        </div>
+        <div class="status-badge" id="statusMessage">Status: Initializing connection...</div>
+    </div>
+
+    <div class="comparison-grid">
+        <div class="bank-card card-unity">
+            <div>
+                <div class="bank-title">Unity Small Finance Bank</div>
+                <div class="metric-row"><span>Monthly Yield:</span><span class="metric-value" id="unityMonthly" style="color:var(--unity)">₹0</span></div>
+                <div class="metric-row"><span>Daily Yield:</span><span class="metric-value" id="unityDaily">₹0</span></div>
+            </div>
+            <div class="split-box"><div class="split-title">Progressive Tier Breakdown</div><div id="unitySplits"></div></div>
+            <div class="source-link-footer">Verify link:<br>🔗 <a href="https://unity.bank.in/docs/policies/website-disclosure-effective-20-jan-2026.pdf" target="_blank">Unity Portal</a></div>
+        </div>
+
+        <div class="bank-card card-idfc">
+            <div>
+                <div class="bank-title">IDFC First Bank</div>
+                <div class="metric-row"><span>Monthly Yield:</span><span class="metric-value" id="idfcMonthly" style="color:var(--idfc)">₹0</span></div>
+                <div class="metric-row"><span>Daily Yield:</span><span class="metric-value" id="idfcDaily">₹0</span></div>
+            </div>
+            <div class="split-box"><div class="split-title">Progressive Tier Breakdown</div><div id="idfcSplits"></div></div>
+            <div class="source-link-footer">Verify link:<br>🔗 <a href="https://www.idfcfirstbank.com/personal-banking/accounts/savings-account/interest-rate" target="_blank">IDFC First Site</a></div>
+        </div>
+
+        <div class="bank-card card-slice">
+            <div>
+                <div class="bank-title">slice Savings</div>
+                <div class="metric-row"><span>Monthly Yield:</span><span class="metric-value" id="sliceMonthly" style="color:var(--slice)">₹0</span></div>
+                <div class="metric-row"><span>Daily Yield:</span><span class="metric-value" id="sliceDaily">₹0</span></div>
+            </div>
+            <div class="split-box"><div class="split-title">Progressive Tier Breakdown</div><div id="sliceSplits"></div></div>
+            <div class="source-link-footer">Verify link:<br>🔗 <a href="https://help.slice.bank.in/support/solutions/articles/84000396024-what-is-the-interest-rate-on-savings-account-" target="_blank">slice Ledger</a></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Fallback configurations while loading global fetch
+    let rateDataConfig = null;
+
+    function fmt(v) { return "₹" + Math.round(v).toLocaleString('en-IN'); }
+    function fmtExact(v) { return "₹" + v.toFixed(2); }
+
+    function buildRowHtml(title, rate, chunk, annual) {
+        return `
+            <div class="slab-element">
+                <div class="slab-header"><span>${title} (${fmt(chunk)})</span><span>@ ${rate.toFixed(2)}%</span></div>
+                <div class="slab-details">
+                    <span>Monthly: <span class="sub-yield">${fmt(annual/12)}</span></span>
+                    <span>Daily: <span class="sub-yield">${fmtExact(annual/365)}</span></span>
+                </div>
+            </div>`;
+    }
+
+    async function pullRatesDataFile() {
+        const status = document.getElementById('statusMessage');
+        status.innerText = "Downloading active rates from GitHub JSON ledger...";
+        status.style.background = "#fef08a"; status.style.color = "#854d0e";
+        
+        try {
+            // Automatically pulls down your master repository text asset asynchronously
+            const res = await fetch('rates.json');
+            rateDataConfig = await res.json();
+            
+            status.innerText = "✅ Success: Live rates synchronized from GitHub storage.";
+            status.style.background = "#bbf7d0"; status.style.color = "#166534";
+            calculateSplits();
+        } catch (err) {
+            status.innerText = "❌ Connection Error: Falling back to template standards.";
+            status.style.background = "#fca5a5"; status.style.color = "#991b1b";
+        }
+    }
+
+    function calculateSplits() {
+        if (!rateDataConfig) return;
+        const amt = parseFloat(document.getElementById('balance').value) || 0;
+
+        // 1. Unity
+        let uAnn = 0, uRem = amt, uHtml = "";
+        rateDataConfig.unity.forEach(slab => {
+            let limit = slab.limit === null ? Infinity : slab.limit;
+            if (uRem > 0) {
+                let chunk = Math.min(uRem, limit);
+                let interest = (chunk * slab.rate) / 100; uAnn += interest;
+                uHtml += buildRowHtml(slab.label, slab.rate, chunk, interest); uRem -= chunk;
+            }
+        });
+        document.getElementById('unityMonthly').innerText = fmt(uAnn / 12);
+        document.getElementById('unityDaily').innerText = fmtExact(uAnn / 365);
+        document.getElementById('unitySplits').innerHTML = uHtml || "No balance entered";
+
+        // 2. IDFC
+        let iAnn = 0, iRem = amt, iHtml = "";
+        rateDataConfig.idfc.forEach(slab => {
+            let limit = slab.limit === null ? Infinity : slab.limit;
+            if (iRem > 0) {
+                let chunk = Math.min(iRem, limit);
+                let interest = (chunk * slab.rate) / 100; iAnn += interest;
+                iHtml += buildRowHtml(slab.label, slab.rate, chunk, interest); iRem -= chunk;
+            }
+        });
+        document.getElementById('idfcMonthly').innerText = fmt(iAnn / 12);
+        document.getElementById('idfcDaily').innerText = fmtExact(iAnn / 365);
+        document.getElementById('idfcSplits').innerHTML = iHtml || "No balance entered";
+
+        // 3. Slice
+        const sAnn = (amt * rateDataConfig.slice) / 100;
+        document.getElementById('sliceMonthly').innerText = fmt(sAnn / 12);
+        document.getElementById('sliceDaily').innerText = fmtExact(sAnn / 365);
+        document.getElementById('sliceSplits').innerHTML = amt > 0 ? buildRowHtml("Repo Track Plan", rateDataConfig.slice, amt, sAnn) : "No balance entered";
+    }
+
+    window.onload = pullRatesDataFile;
+</script>
+</body>
+</html>
