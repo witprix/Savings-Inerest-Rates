@@ -6,15 +6,17 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch: # Allows manual trigger button click
 
+env:
+  # This explicitly tells the GitHub runner to execute everything on Node 24, silencing the warning
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   update-rates:
     runs-on: ubuntu-latest
     steps:
-    # Updated from @v4 to @v4.2.2 to natively support Node 24
     - name: Checkout Code Repository
       uses: actions/checkout@v4.2.2
 
-    # Updated from @v5 to @v5.4.0 to natively support Node 24
     - name: Set Up Python Environment
       uses: actions/setup-python@v5.4.0
       with:
