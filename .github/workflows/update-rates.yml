@@ -6,32 +6,38 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch: # Allows manual trigger button click
 
-env:
-  # This explicitly tells the GitHub runner to execute everything on Node 24, silencing the warning
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   update-rates:
     runs-on: ubuntu-latest
     steps:
+    # 1. Native Git checkout bypassing actions/checkout to prevent Node warnings
     - name: Checkout Code Repository
-      uses: actions/checkout@v4.2.2
+      run: |
+        git clone https://github.com/${{ github.repository }}.git .
+        git checkout ${{ github.ref_name }}
 
-    - name: Set Up Python Environment
-      uses: actions/setup-python@v5.4.0
-      with:
-        python-version: '3.10'
+    # 2. Using the system's pre-installed Python instead of actions/setup-python
+    - name: Verify Python Installation
+      run: |
+        python3 --version
+        pip3 --version
 
+    # 3. Standard dependencies setup
     - name: Install Scraping Dependencies
       run: |
-        pip install requests beautifulsoup4
+        python3 -m pip install --upgrade pip
+        python3 -m pip install requests beautifulsoup4
 
+    # 4. Execute the scraper
     - name: Run Fetching Script
-      run: python updater.py
+      run: python3 updater.py
 
+    # 5. Push updates back to your repository
     - name: Commit and Push Changes if Rates Changed
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        # Remote URL authentication setup for native pushing
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         git add rates.json
-        git diff --quiet && git diff --staged --quiet || (git commit -m "Automated Sync: Live Bank Rates updated" && git push)
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Automated Sync: Live Bank Rates updated" && git push origin HEAD:${{ github.ref_name }})
