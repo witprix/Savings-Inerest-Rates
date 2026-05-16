@@ -1,0 +1,33 @@
+name: Daily Bank Rate Sync Engine
+
+on:
+  schedule:
+    # Runs automatically at 00:00 UTC (5:30 AM IST) every single day
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows you to also trigger it manually with a button click on GitHub!
+
+jobs:
+  update-rates:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code Repository
+      uses: actions/checkout@v4
+
+    - name: Set Up Python Environment
+      uses: actions/setup-python@v5
+      with:
+        python-node: '3.10'
+
+    - name: Install Scraping Dependencies
+      run: |
+        pip install requests beautifulsoup4
+
+    - name: Run Fetching Script
+      run: python updater.py
+
+    - name: Commit and Push Changes if Rates Changed
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add rates.json
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Automated Sync: Live Bank Rates updated" && git push)
