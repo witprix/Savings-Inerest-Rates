@@ -1,239 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Auditable Savings Matrix</title>
-    <style>
-        :root {
-            --primary: #0f172a;
-            --unity: #7c3aed;
-            --idfc: #2563eb;
-            --slice: #059669;
-            --bg: #f8fafc;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Savings Split Engine: Unity vs slice</title>
+<style>
+    :root {
+        --primary: #0f172a;
+        --unity: #7c3aed;
+        --slice: #059669;
+        --bg: #f8fafc;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: #1e293b; margin: 0; padding: 15px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 20px; }
+    h1 { font-size: 1.5rem; color: var(--primary); margin: 0 0 5px 0; }
 
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: var(--bg);
-            color: #1e293b;
-            margin: 0;
-            padding: 15px;
-        }
+    .controls-container {
+        background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .input-row { display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; }
+    label { font-weight: 600; }
+    .input-wrapper { position: relative; }
+    .input-wrapper span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-weight: bold; color: #94a3b8; }
+    input[type="number"] {
+        padding: 10px 10px 10px 30px; font-size: 1.2rem; border: 2px solid #cbd5e1; border-radius: 8px;
+        width: 200px; max-width: 100%; font-weight: bold; outline: none;
+    }
+    input[type="number"]:focus { border-color: var(--primary); }
 
-        .container { max-width: 1200px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 20px; }
-        h1 { font-size: 1.5rem; color: var(--primary); margin: 0 0 5px 0; }
+    .status-badge { font-size: 0.85rem; padding: 4px 12px; border-radius: 20px; font-weight: 600; background: #bbf7d0; color: #166534; text-align: center; }
+    .winner { font-size: 0.95rem; font-weight: 700; color: var(--primary); text-align: center; }
 
-        .controls-container {
-            background: white; padding: 15px; border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 20px;
-            display: flex; flex-direction: column; align-items: center; gap: 15px;
-        }
+    .comparison-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+    .bank-card {
+        background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        border-top: 5px solid #cbd5e1; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .card-unity { border-top-color: var(--unity); }
+    .card-slice { border-top-color: var(--slice); }
+    .bank-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 12px; }
+    .metric-row { display: flex; justify-content: space-between; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 0.9rem; }
+    .metric-label { color: #64748b; font-weight: 500; }
+    .metric-value { font-weight: 700; }
 
-        .input-row {
-            display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap;
-        }
+    .split-box { background: #fafafa; border: 1px dashed #e2e8f0; border-radius: 8px; padding: 12px; font-size: 0.82rem; margin-top: 10px; flex-grow: 1; }
+    .split-title { font-weight: 700; color: #475569; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; font-size: 0.8rem; }
+    .slab-element { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 8px; }
+    .slab-header { font-weight: 700; margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; font-size: 0.85rem; }
+    .slab-details { display: flex; justify-content: space-between; color: #64748b; margin-top: 4px; }
+    .sub-yield { font-weight: 700; color: #0f172a; }
 
-        label { font-weight: 600; }
-        .input-wrapper { position: relative; }
-        .input-wrapper span {
-            position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-weight: bold; color: #94a3b8;
-        }
-        input[type="number"] {
-            padding: 10px 10px 10px 30px; font-size: 1.2rem; border: 2px solid #cbd5e1;
-            border-radius: 8px; width: 200px; font-weight: bold; outline: none;
-        }
+    .source-link-footer { margin-top: 12px; padding-top: 8px; border-top: 1px dashed #e2e8f0; font-size: 0.78rem; color: #64748b; }
+    .source-link-footer a { color: #2563eb; text-decoration: none; font-weight: 600; }
+    .source-link-footer a:hover { text-decoration: underline; }
+    .note { margin-top: 15px; font-size: 0.75rem; color: #64748b; text-align: center; }
 
-        .fetch-btn {
-            background-color: var(--primary); color: white; border: none; padding: 12px 20px;
-            font-size: 1rem; font-weight: 600; border-radius: 8px; cursor: pointer;
-            transition: all 0.2s ease; display: flex; align-items: center; gap: 8px;
-        }
-        .fetch-btn:hover { background-color: #1e293b; transform: translateY(-1px); }
-        
-        .status-badge {
-            font-size: 0.85rem; padding: 4px 12px; border-radius: 20px; font-weight: 600;
-            background: #e2e8f0; color: #475569; transition: all 0.3s ease;
-        }
-
-        .comparison-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .bank-card {
-            background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-            border-top: 5px solid #cbd5e1; display: flex; flex-direction: column; justify-content: space-between;
-        }
-
-        .card-unity { border-top-color: var(--unity); }
-        .card-idfc { border-top-color: var(--idfc); }
-        .card-slice { border-top-color: var(--slice); }
-
-        .bank-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 12px; }
-        .metric-row {
-            display: flex; justify-content: space-between; background: #f1f5f9;
-            padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 0.9rem;
-        }
-        .metric-label { color: #64748b; font-weight: 500; }
-        .metric-value { font-weight: 700; }
-
-        .split-box {
-            background: #fafafa; border: 1px dashed #e2e8f0; border-radius: 8px;
-            padding: 12px; font-size: 0.82rem; margin-top: 10px; flex-grow: 1;
-        }
-        .split-title {
-            font-weight: 700; color: #475569; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 4px; text-transform: uppercase; font-size: 0.75rem;
-        }
-
-        .slab-element { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 8px; }
-        .slab-header { font-weight: 700; color: #1e293b; margin-bottom: 4px; display: flex; justify-content: space-between; font-size: 0.85rem; }
-        .slab-details { display: flex; justify-content: space-between; color: #64748b; margin-top: 4px; }
-        .sub-yield { font-weight: 700; color: #0f172a; }
-
-        .source-link-footer {
-            margin-top: 12px; padding-top: 8px; border-top: 1px dashed #e2e8f0; font-size: 0.78rem; color: #64748b;
-        }
-        .source-link-footer a { color: #2563eb; text-decoration: none; font-weight: 600; }
-        .source-link-footer a:hover { text-decoration: underline; }
-
-        @media (max-width: 950px) { .comparison-grid { grid-template-columns: 1fr; } }
-    </style>
+    @media (max-width: 700px) { .comparison-grid { grid-template-columns: 1fr; } }
+</style>
 </head>
 <body>
-
 <div class="container">
-    <header>
-        <h1>Verified Savings Split Engine</h1>
-    </header>
+    <header><h1>Savings Split Engine</h1></header>
 
     <div class="controls-container">
         <div class="input-row">
-            <label for="balance">Enter Balance Portfolio:</label>
+            <label for="balance">Enter balance:</label>
             <div class="input-wrapper">
                 <span>₹</span>
-                <input type="number" id="balance" value="200000" min="0" oninput="calculateSplits()">
+                <input type="number" id="balance" value="200000" min="0" step="any" inputmode="decimal" oninput="calculateSplits()">
             </div>
-            <button class="fetch-btn" onclick="fetchLiveRates()">
-                <span>🔄</span> Fetch Latest Rates
-            </button>
         </div>
-        <div class="status-badge" id="statusMessage">Status: Operating on Local Verified Configurations</div>
+        <div class="status-badge">✅ Rates checked against bank sites on 30 Sep 2026</div>
+        <div class="winner" id="winnerMsg"></div>
     </div>
 
     <div class="comparison-grid">
         <div class="bank-card card-unity">
             <div>
                 <div class="bank-title">Unity Small Finance Bank</div>
-                <div class="metric-row"><span class="metric-label">Monthly Yield:</span><span class="metric-value" id="unityMonthly" style="color:var(--unity)">₹0</span></div>
-                <div class="metric-row"><span class="metric-label">Daily Yield:</span><span class="metric-value" id="unityDaily">₹0</span></div>
+                <div class="metric-row"><span class="metric-label">Monthly yield:</span><span class="metric-value" id="unityMonthly" style="color:var(--unity)">₹0</span></div>
+                <div class="metric-row"><span class="metric-label">Daily yield:</span><span class="metric-value" id="unityDaily">₹0.00</span></div>
             </div>
-            <div class="split-box"><div class="split-title">Progressive Tier Breakdown</div><div id="unitySplits"></div></div>
-            <div class="source-link-footer">Verify rate card directly at:<br>🔗 <a href="https://unity.bank.in/docs/policies/website-disclosure-effective-20-jan-2026.pdf" target="_blank">Unity Bank Policy Portal</a></div>
-        </div>
-
-        <div class="bank-card card-idfc">
-            <div>
-                <div class="bank-title">IDFC First Bank</div>
-                <div class="metric-row"><span class="metric-label">Monthly Yield:</span><span class="metric-value" id="idfcMonthly" style="color:var(--idfc)">₹0</span></div>
-                <div class="metric-row"><span class="metric-label">Daily Yield:</span><span class="metric-value" id="idfcDaily">₹0</span></div>
-            </div>
-            <div class="split-box"><div class="split-title">Progressive Tier Breakdown</div><div id="idfcSplits"></div></div>
-            <div class="source-link-footer">Verify rate card directly at:<br>🔗 <a href="https://www.idfcfirstbank.com/personal-banking/accounts/savings-account/interest-rate" target="_blank">IDFC First Official Site</a></div>
+            <div class="split-box"><div class="split-title">Slab breakdown (effective 1 Aug 2026)</div><div id="unitySplits"></div></div>
+            <div class="source-link-footer">Verify rate card at:<br>🔗 <a href="https://unity.bank.in/docs/policies/website-disclosure-effective-4-aug-2026.pdf" target="_blank" rel="noopener">Unity Bank rate disclosure (Aug 2026)</a></div>
         </div>
 
         <div class="bank-card card-slice">
             <div>
                 <div class="bank-title">slice Savings</div>
-                <div class="metric-row"><span class="metric-label">Monthly Yield:</span><span class="metric-value" id="sliceMonthly" style="color:var(--slice)">₹0</span></div>
-                <div class="metric-row"><span class="metric-label">Daily Yield:</span><span class="metric-value" id="sliceDaily">₹0</span></div>
+                <div class="metric-row"><span class="metric-label">Monthly yield:</span><span class="metric-value" id="sliceMonthly" style="color:var(--slice)">₹0</span></div>
+                <div class="metric-row"><span class="metric-label">Daily yield:</span><span class="metric-value" id="sliceDaily">₹0.00</span></div>
             </div>
-            <div class="split-box"><div class="split-title">Progressive Tier Breakdown</div><div id="sliceSplits"></div></div>
-            <div class="source-link-footer">Verify rate card directly at:<br>🔗 <a href="https://help.slice.bank.in/support/solutions/articles/84000396024-what-is-the-interest-rate-on-savings-account-" target="_blank">slice Help Desk Ledger</a></div>
+            <div class="split-box"><div class="split-title">Rate breakdown</div><div id="sliceSplits"></div></div>
+            <div class="source-link-footer">Verify rate at:<br>🔗 <a href="https://help.slice.bank.in/support/solutions/articles/84000396024-what-is-the-interest-rate-on-savings-account-" target="_blank" rel="noopener">slice Help Center</a></div>
         </div>
     </div>
+
+    <div class="note">Yields are simple estimates: annual interest ÷ 12 and ÷ 365. Unity pays interest monthly and slice pays daily, so actual credits may differ slightly. Rates can change without notice.</div>
 </div>
 
 <script>
-    // CORE DATABASE: Update these numbers if the banks ever change their rates
-    let liveDatabase = {
+    // Update these if the banks change their rates.
+    // "upTo" is the cumulative upper bound of each slab (Infinity = no cap).
+    const RATES = {
         unity: [
-            { limit: 100000, rate: 4.50, label: "Slab 1 (Up to 1L)" },
-            { limit: 900000, rate: 6.00, label: "Slab 2 (1L to 10L)" },
-            { limit: Infinity, rate: 7.00, label: "Slab 3 (Above 10L)" }
+            { upTo: 100000,   rate: 4.50, label: "Up to ₹1L" },
+            { upTo: 500000,   rate: 6.00, label: "₹1L to ₹5L" },
+            { upTo: Infinity, rate: 7.00, label: "Above ₹5L" }
         ],
-        idfc: [
-            { limit: 300000, rate: 3.00, label: "Slab 1 (Up to 3L)" },
-            { limit: Infinity, rate: 6.50, label: "Slab 2 (Above 3L)" }
-        ],
-        slice: 5.25 // RBI Repo Tracker
+        slice: 5.25 // tracks 100% of the RBI repo rate
     };
 
-    function fmt(val) { return "₹" + Math.round(val).toLocaleString('en-IN'); }
-    function fmtExact(val) { return "₹" + val.toFixed(2); }
+    const fmt = v => "₹" + Math.round(v).toLocaleString('en-IN');
+    const fmtExact = v => "₹" + v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    function buildRowHtml(title, rate, chunk, annual) {
+    function rowHtml(title, rate, chunk, annual) {
         return `
             <div class="slab-element">
                 <div class="slab-header"><span>${title} (${fmt(chunk)})</span><span>@ ${rate.toFixed(2)}%</span></div>
                 <div class="slab-details">
-                    <span>M: <span class="sub-yield">${fmt(annual/12)}</span></span>
-                    <span>D: <span class="sub-yield">${fmtExact(annual/365)}</span></span>
+                    <span>M: <span class="sub-yield">${fmt(annual / 12)}</span></span>
+                    <span>D: <span class="sub-yield">${fmtExact(annual / 365)}</span></span>
                 </div>
-            </div>
-        `;
+            </div>`;
     }
 
     function calculateSplits() {
-        const amt = parseFloat(document.getElementById('balance').value) || 0;
+        const raw = parseFloat(document.getElementById('balance').value);
+        const amt = Number.isFinite(raw) ? Math.max(0, raw) : 0;
 
-        // 1. Unity Calculator
-        let uAnn = 0, uRem = amt, uHtml = "";
-        liveDatabase.unity.forEach(slab => {
-            if (uRem > 0) {
-                let chunk = Math.min(uRem, slab.limit);
-                let interest = (chunk * slab.rate) / 100; uAnn += interest;
-                uHtml += buildRowHtml(slab.label, slab.rate, chunk, interest); uRem -= chunk;
-            }
-        });
+        // Unity: progressive slabs
+        let uAnn = 0, prev = 0, uHtml = "";
+        for (const slab of RATES.unity) {
+            if (amt <= prev) break;
+            const chunk = Math.min(amt, slab.upTo) - prev;
+            const interest = chunk * slab.rate / 100;
+            uAnn += interest;
+            uHtml += rowHtml(slab.label, slab.rate, chunk, interest);
+            prev = slab.upTo;
+        }
         document.getElementById('unityMonthly').innerText = fmt(uAnn / 12);
         document.getElementById('unityDaily').innerText = fmtExact(uAnn / 365);
         document.getElementById('unitySplits').innerHTML = uHtml || "No balance entered";
 
-        // 2. IDFC Calculator
-        let iAnn = 0, iRem = amt, iHtml = "";
-        liveDatabase.idfc.forEach(slab => {
-            if (iRem > 0) {
-                let chunk = Math.min(iRem, slab.limit);
-                let interest = (chunk * slab.rate) / 100; iAnn += interest;
-                iHtml += buildRowHtml(slab.label, slab.rate, chunk, interest); iRem -= chunk;
-            }
-        });
-        document.getElementById('idfcMonthly').innerText = fmt(iAnn / 12);
-        document.getElementById('idfcDaily').innerText = fmtExact(iAnn / 365);
-        document.getElementById('idfcSplits').innerHTML = iHtml || "No balance entered";
-
-        // 3. Slice Calculator
-        const sAnn = (amt * liveDatabase.slice) / 100;
+        // slice: flat rate
+        const sAnn = amt * RATES.slice / 100;
         document.getElementById('sliceMonthly').innerText = fmt(sAnn / 12);
         document.getElementById('sliceDaily').innerText = fmtExact(sAnn / 365);
-        document.getElementById('sliceSplits').innerHTML = amt > 0 ? buildRowHtml("Flat Repo Rate Track", liveDatabase.slice, amt, sAnn) : "No balance entered";
-    }
+        document.getElementById('sliceSplits').innerHTML = amt > 0 ? rowHtml("Flat repo-linked rate", RATES.slice, amt, sAnn) : "No balance entered";
 
-    // Connects Button to UI logic
-    function fetchLiveRates() {
-        const status = document.getElementById('statusMessage');
-        status.innerText = "Connecting to mock server to verify rates...";
-        status.style.background = "#fef08a"; status.style.color = "#854d0e";
-        
-        setTimeout(() => {
-            // Re-confirming rates are accurate as per source links
-            status.innerText = "✅ Verified: Database matches live official bank URLs.";
-            status.style.background = "#bbf7d0"; status.style.color = "#166534";
-            calculateSplits();
-        }, 1200);
+        // Comparison
+        const w = document.getElementById('winnerMsg');
+        const diff = Math.abs(uAnn - sAnn) / 12;
+        if (amt <= 0) w.innerText = "";
+        else if (Math.round(diff) === 0) w.innerText = "Both earn about the same each month.";
+        else w.innerText = `${uAnn > sAnn ? "Unity" : "slice"} earns ${fmt(diff)} more per month.`;
     }
 
     window.onload = calculateSplits;
 </script>
-
 </body>
 </html>
