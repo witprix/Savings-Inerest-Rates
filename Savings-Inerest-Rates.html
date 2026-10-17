@@ -73,7 +73,7 @@
                 <input type="number" id="balance" value="200000" min="0" step="any" inputmode="decimal" oninput="calculateSplits()">
             </div>
         </div>
-        <div class="status-badge">✅ Rates checked against bank sites on 30 Sep 2026</div>
+        <div class="status-badge">✅ Rates checked against bank sites on 17 Oct 2026</div>
         <div class="winner" id="winnerMsg"></div>
     </div>
 
@@ -85,7 +85,7 @@
                 <div class="metric-row"><span class="metric-label">Daily yield:</span><span class="metric-value" id="unityDaily">₹0.00</span></div>
             </div>
             <div class="split-box"><div class="split-title">Slab breakdown (effective 1 Aug 2026)</div><div id="unitySplits"></div></div>
-            <div class="source-link-footer">Verify rate card at:<br>🔗 <a href="https://unity.bank.in/docs/policies/website-disclosure-effective-4-aug-2026.pdf" target="_blank" rel="noopener">Unity Bank rate disclosure (Aug 2026)</a></div>
+            <div class="source-link-footer">Verify rate card at:<br>🔗 <a href="https://unity.bank.in/docs/policies/website-disclosure-effective-4-aug-2026.pdf" target="_blank" rel="noopener">Unity Bank rate disclosure</a></div>
         </div>
 
         <div class="bank-card card-slice">
@@ -111,7 +111,7 @@
             { upTo: 500000,   rate: 6.00, label: "₹1L to ₹5L" },
             { upTo: Infinity, rate: 7.00, label: "Above ₹5L" }
         ],
-        slice: 5.25 // tracks 100% of the RBI repo rate
+        slice: 5.50 // tracks 100% of the RBI repo rate
     };
 
     const fmt = v => "₹" + Math.round(v).toLocaleString('en-IN');
