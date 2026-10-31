@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Savings Split Engine: Unity vs slice vs Suryoday</title>
+<title>Savings & FD Projection Engine (Verified Oct 2026)</title>
 <style>
     :root {
         --primary: #0f172a;
@@ -14,7 +14,7 @@
     }
     * { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: #1e293b; margin: 0; padding: 15px; }
-    .container { max-width: 1000px; margin: 0 auto; }
+    .container { max-width: 1050px; margin: 0 auto; }
     header { text-align: center; margin-bottom: 20px; }
     h1 { font-size: 1.5rem; color: var(--primary); margin: 0 0 5px 0; }
 
@@ -62,7 +62,7 @@
     .source-link-footer { margin-top: 12px; padding-top: 8px; border-top: 1px dashed #e2e8f0; font-size: 0.78rem; color: #64748b; }
     .source-link-footer a { color: #2563eb; text-decoration: none; font-weight: 600; }
     .source-link-footer a:hover { text-decoration: underline; }
-    .note { margin-top: 15px; font-size: 0.75rem; color: #64748b; text-align: center; }
+    .note { margin-top: 15px; font-size: 0.75rem; color: #64748b; text-align: center; line-height: 1.4; }
 
     @media (max-width: 900px) { .comparison-grid { grid-template-columns: 1fr; } }
 </style>
@@ -82,7 +82,7 @@
             <label for="years" style="margin-left: 10px;">Tenure (Years):</label>
             <input type="number" id="years" class="small-input" value="5" min="1" max="20" step="1" inputmode="numeric" oninput="calculateSplits()">
         </div>
-        <div class="status-badge">✅ Live rates verified on 17 Oct 2026</div>
+        <div class="status-badge">✅ Live rates verified on 31 Oct 2026</div>
         <div class="winner" id="winnerMsg"></div>
     </div>
 
@@ -95,7 +95,7 @@
                 <div class="metric-row"><span class="metric-label">Maturity (<span class="yr-label">5</span>Y):</span><span class="metric-value" id="unityMaturity" style="color:var(--unity)">₹0</span></div>
                 <div class="metric-row"><span class="metric-label">Total Interest:</span><span class="metric-value" id="unityInterest">₹0</span></div>
             </div>
-            <div class="split-box"><div class="split-title">Year 1 Slab breakdown</div><div id="unitySplits"></div></div>
+            <div class="split-box"><div class="split-title">Opening Balance Slabs</div><div id="unitySplits"></div></div>
             <div class="source-link-footer">🔗 <a href="https://unity.bank.in/docs/policies/website-disclosure-effective-4-aug-2026.pdf" target="_blank" rel="noopener">Unity Bank rate disclosure</a></div>
         </div>
 
@@ -117,133 +117,4 @@
                 <div class="bank-title">Suryoday SFB (Fixed Deposit)</div>
                 <div class="metric-row"><span class="metric-label">Applicable Rate:</span><span class="metric-value" id="suryodayRate">8.25%</span></div>
                 <div class="metric-row"><span class="metric-label">Maturity (<span class="yr-label">5</span>Y):</span><span class="metric-value" id="suryodayMaturity" style="color:var(--suryoday)">₹0</span></div>
-                <div class="metric-row"><span class="metric-label">Total Interest:</span><span class="metric-value" id="suryodayInterest">₹0</span></div>
-            </div>
-            <div class="split-box"><div class="split-title">FD Details</div><div id="suryodaySplits"></div></div>
-            <div class="source-link-footer">🔗 <a href="https://suryoday.bank.in/personal/deposits/fixed-deposits/" target="_blank" rel="noopener">Suryoday FD Rates</a></div>
-        </div>
-    </div>
-
-    <div class="note">* Projections assume reinvestment of interest. Savings accounts (Unity, slice) are simulated with compound interest. Suryoday FD is strictly calculated using standard quarterly compounding. Rates apply to regular citizens and can change without notice.</div>
-</div>
-
-<script>
-    const RATES = {
-        unity: [
-            { upTo: 100000,   rate: 4.50, label: "Up to ₹1L" },
-            { upTo: 500000,   rate: 6.00, label: "₹1L to ₹5L" },
-            { upTo: Infinity, rate: 7.00, label: "Above ₹5L" }
-        ],
-        slice: 5.50, // 100% of RBI repo
-        suryodayFD: function(years) {
-            // Dynamic rate based on tenure
-            if (years >= 5) return 8.25;
-            if (years >= 3) return 8.10; 
-            if (years >= 1) return 7.25; 
-            return 6.50;
-        }
-    };
-
-    const fmt = v => "₹" + Math.round(v).toLocaleString('en-IN');
-
-    function rowHtml(title, rate, chunk, annualInterest) {
-        return `
-            <div class="slab-element">
-                <div class="slab-header"><span>${title} (${fmt(chunk)})</span><span>@ ${rate.toFixed(2)}%</span></div>
-                <div class="slab-details">
-                    <span>Yr 1 yield: <span class="sub-yield">${fmt(annualInterest)}</span></span>
-                    <span>Mthly avg: <span class="sub-yield">${fmt(annualInterest/12)}</span></span>
-                </div>
-            </div>`;
-    }
-
-    function calculateSplits() {
-        const rawAmt = parseFloat(document.getElementById('balance').value);
-        const amt = Number.isFinite(rawAmt) ? Math.max(0, rawAmt) : 0;
-        
-        const rawYrs = parseFloat(document.getElementById('years').value);
-        const years = Number.isFinite(rawYrs) && rawYrs > 0 ? rawYrs : 1;
-
-        // Update year labels in the UI
-        document.querySelectorAll('.yr-label').forEach(el => el.innerText = years);
-
-        // --- 1. Unity Bank (Simulating Slab Growth Over Time) ---
-        let unityBalance = amt;
-        let uFirstYearHtml = "";
-        let uFirstYearInterest = 0;
-        
-        for (let y = 1; y <= years; y++) {
-            let prev = 0;
-            let yearInterest = 0;
-            let htmlTemp = "";
-            for (const slab of RATES.unity) {
-                if (unityBalance <= prev) break;
-                const chunk = Math.min(unityBalance, slab.upTo) - prev;
-                const interest = chunk * slab.rate / 100;
-                yearInterest += interest;
-                
-                if (y === 1) htmlTemp += rowHtml(slab.label, slab.rate, chunk, interest);
-                prev = slab.upTo;
-            }
-            if (y === 1) {
-                uFirstYearInterest = yearInterest;
-                uFirstYearHtml = htmlTemp;
-            }
-            unityBalance += yearInterest; // Reinvesting interest at year end
-        }
-        
-        const uTotalInterest = unityBalance - amt;
-        const uEffRate = amt > 0 ? (uFirstYearInterest / amt * 100) : 0;
-        
-        document.getElementById('unityRate').innerText = uEffRate.toFixed(2) + '%';
-        document.getElementById('unityMaturity').innerText = fmt(unityBalance);
-        document.getElementById('unityInterest').innerText = fmt(uTotalInterest);
-        document.getElementById('unitySplits').innerHTML = amt > 0 ? uFirstYearHtml : "No balance entered";
-
-        // --- 2. slice Savings (Daily Compounding) ---
-        // A = P * (1 + r/365)^(365*t)
-        const sliceBalance = amt * Math.pow(1 + (RATES.slice / 100) / 365, 365 * years);
-        const sTotalInterest = sliceBalance - amt;
-        
-        document.getElementById('sliceRate').innerText = RATES.slice.toFixed(2) + '%';
-        document.getElementById('sliceMaturity').innerText = fmt(sliceBalance);
-        document.getElementById('sliceInterest').innerText = fmt(sTotalInterest);
-        document.getElementById('sliceSplits').innerHTML = amt > 0 ? rowHtml("Flat repo-linked rate", RATES.slice, amt, amt * RATES.slice / 100) : "No balance entered";
-
-        // --- 3. Suryoday FD (Quarterly Compounding) ---
-        const fdRate = RATES.suryodayFD(years);
-        // A = P * (1 + r/4)^(4*t)
-        const fdBalance = amt * Math.pow(1 + (fdRate / 100) / 4, 4 * years);
-        const fdTotalInterest = fdBalance - amt;
-        
-        document.getElementById('suryodayRate').innerText = fdRate.toFixed(2) + '%';
-        document.getElementById('suryodayMaturity').innerText = fmt(fdBalance);
-        document.getElementById('suryodayInterest').innerText = fmt(fdTotalInterest);
-        
-        document.getElementById('suryodaySplits').innerHTML = amt > 0 ? `
-            <div class="slab-element">
-                <div class="slab-header"><span>Fixed Tenure Rate (${years}Y)</span><span>@ ${fdRate.toFixed(2)}%</span></div>
-                <div class="slab-details">
-                    <span>Compounding: <span class="sub-yield">Quarterly</span></span>
-                    <span>Avg Yrly: <span class="sub-yield">${fmt(fdTotalInterest/years)}</span></span>
-                </div>
-            </div>` : "No balance entered";
-
-        // --- Determine the Winner ---
-        const w = document.getElementById('winnerMsg');
-        if (amt <= 0) {
-            w.innerText = "";
-        } else {
-            let maxInt = Math.max(uTotalInterest, sTotalInterest, fdTotalInterest);
-            let winner = "Suryoday FD";
-            if (maxInt === uTotalInterest) winner = "Unity Bank Savings";
-            if (maxInt === sTotalInterest) winner = "slice Savings";
-            
-            w.innerText = `🏆 ${winner} yields the highest return over ${years} year(s).`;
-        }
-    }
-
-    window.onload = calculateSplits;
-</script>
-</body>
-</html>
+                <div class="metric-row"><span class="metric-label">Total Interest:</span><span class="metric-value" id="suryodayInterest">₹0
