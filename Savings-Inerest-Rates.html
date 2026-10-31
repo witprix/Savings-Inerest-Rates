@@ -3,136 +3,216 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Savings & FD Projection Engine (Verified Oct 2026)</title>
+<title>Savings & FD Projection Dashboard</title>
 <style>
     :root {
         --primary: #0f172a;
-        --unity: #7c3aed;
-        --slice: #059669;
-        --suryoday: #ea580c;
-        --bg: #f8fafc;
+        --unity: #8b5cf6;
+        --slice: #10b981;
+        --suryoday: #f97316;
+        --bg: #f1f5f9;
+        --card-bg: #ffffff;
+        --text-main: #334155;
+        --text-muted: #64748b;
     }
+    
     * { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: #1e293b; margin: 0; padding: 15px; }
-    .container { max-width: 1050px; margin: 0 auto; }
-    header { text-align: center; margin-bottom: 20px; }
-    h1 { font-size: 1.5rem; color: var(--primary); margin: 0 0 5px 0; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; line-height: 1.5; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    header { text-align: center; margin-bottom: 30px; }
+    h1 { font-size: 1.8rem; color: var(--primary); margin: 0 0 8px 0; font-weight: 800; letter-spacing: -0.5px; }
+    .status-badge { display: inline-block; font-size: 0.8rem; padding: 5px 12px; border-radius: 20px; font-weight: 600; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 
+    /* Controls Section */
     .controls-container {
-        background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+        background: var(--card-bg); padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.025);
+        margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; gap: 20px;
     }
-    .input-row { display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; }
-    label { font-weight: 600; }
+    .input-group { display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .input-field { display: flex; flex-direction: column; gap: 6px; }
+    label { font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
+    
     .input-wrapper { position: relative; }
-    .input-wrapper span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-weight: bold; color: #94a3b8; }
+    .input-wrapper span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 700; color: #94a3b8; }
     input[type="number"] {
-        padding: 10px 10px 10px 30px; font-size: 1.2rem; border: 2px solid #cbd5e1; border-radius: 8px;
-        width: 180px; max-width: 100%; font-weight: bold; outline: none;
+        padding: 12px 14px 12px 35px; font-size: 1.2rem; border: 2px solid #e2e8f0; border-radius: 10px;
+        width: 220px; font-weight: 700; color: var(--primary); transition: all 0.2s; outline: none; background: #f8fafc;
     }
-    input[type="number"].small-input {
-        width: 80px; padding: 10px; text-align: center;
-    }
-    input[type="number"]:focus { border-color: var(--primary); }
+    input[type="number"].small-input { width: 120px; padding-left: 14px; text-align: center; }
+    input[type="number"]:focus { border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
 
-    .status-badge { font-size: 0.85rem; padding: 4px 12px; border-radius: 20px; font-weight: 600; background: #bbf7d0; color: #166534; text-align: center; }
-    .winner { font-size: 1.1rem; font-weight: 800; color: #2563eb; text-align: center; background: #eff6ff; padding: 8px 16px; border-radius: 8px; border: 1px solid #bfdbfe; }
+    .winner { width: 100%; font-size: 1.15rem; font-weight: 800; color: #1d4ed8; text-align: center; background: #eff6ff; padding: 12px; border-radius: 10px; border: 1px dashed #93c5fd; }
 
-    .comparison-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    /* Cards Grid */
+    .comparison-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    
     .bank-card {
-        background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-        border-top: 5px solid #cbd5e1; display: flex; flex-direction: column; justify-content: space-between;
+        background: var(--card-bg); border-radius: 16px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+        border-top: 6px solid #cbd5e1; display: flex; flex-direction: column; position: relative; overflow: hidden;
     }
     .card-unity { border-top-color: var(--unity); }
     .card-slice { border-top-color: var(--slice); }
     .card-suryoday { border-top-color: var(--suryoday); }
     
-    .bank-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 12px; }
-    .metric-row { display: flex; justify-content: space-between; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 0.9rem; }
-    .metric-label { color: #64748b; font-weight: 500; }
-    .metric-value { font-weight: 800; }
+    .bank-title { font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 16px; }
+    
+    /* Primary Metrics */
+    .metric-group { background: #f8fafc; border-radius: 10px; padding: 16px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+    .metric-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed #cbd5e1; }
+    .metric-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .metric-row:first-child { padding-top: 0; }
+    .metric-label { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+    .metric-value { font-weight: 800; font-size: 1.05rem; }
+    .highlight-value { font-size: 1.2rem; }
 
-    .split-box { background: #fafafa; border: 1px dashed #e2e8f0; border-radius: 8px; padding: 12px; font-size: 0.82rem; margin-top: 10px; flex-grow: 1; }
-    .split-title { font-weight: 700; color: #475569; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; font-size: 0.8rem; }
-    .slab-element { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 8px; }
-    .slab-header { font-weight: 700; margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; font-size: 0.85rem; }
-    .slab-details { display: flex; justify-content: space-between; color: #64748b; margin-top: 4px; font-size: 0.8rem;}
-    .sub-yield { font-weight: 700; color: #0f172a; }
+    /* Averages Grid (Daily, Monthly, Annually) */
+    .earnings-title { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; text-align: center;}
+    .avg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+    .avg-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 6px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+    .avg-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+    .avg-value { font-size: 1.05rem; font-weight: 800; color: var(--primary); }
+    .avg-value.small-decimals { font-size: 0.9rem; }
 
-    .source-link-footer { margin-top: 12px; padding-top: 8px; border-top: 1px dashed #e2e8f0; font-size: 0.78rem; color: #64748b; }
-    .source-link-footer a { color: #2563eb; text-decoration: none; font-weight: 600; }
-    .source-link-footer a:hover { text-decoration: underline; }
-    .note { margin-top: 15px; font-size: 0.75rem; color: #64748b; text-align: center; line-height: 1.4; }
+    /* Footer links */
+    .source-link-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 0.8rem; text-align: center; }
+    .source-link-footer a { color: #3b82f6; text-decoration: none; font-weight: 600; transition: color 0.2s; }
+    .source-link-footer a:hover { color: #1d4ed8; text-decoration: underline; }
+    
+    .note { margin-top: 30px; font-size: 0.8rem; color: var(--text-muted); text-align: center; max-width: 800px; margin-left: auto; margin-right: auto; line-height: 1.6; }
 
-    @media (max-width: 900px) { .comparison-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 950px) { .comparison-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 <div class="container">
-    <header><h1>Savings & FD Projection Engine</h1></header>
+    <header>
+        <h1>Yield Projection Dashboard</h1>
+        <div class="status-badge">✓ Verified Live Rates: 31 Oct 2026</div>
+    </header>
 
     <div class="controls-container">
-        <div class="input-row">
-            <label for="balance">Initial Balance:</label>
-            <div class="input-wrapper">
-                <span>₹</span>
-                <input type="number" id="balance" value="200000" min="0" step="any" inputmode="decimal" oninput="calculateSplits()">
+        <div class="input-group">
+            <div class="input-field">
+                <label for="balance">Initial Deposit Amount</label>
+                <div class="input-wrapper">
+                    <span>₹</span>
+                    <input type="number" id="balance" value="200000" min="0" step="any" inputmode="decimal" oninput="calculateSplits()">
+                </div>
             </div>
             
-            <label for="years" style="margin-left: 10px;">Tenure (Years):</label>
-            <input type="number" id="years" class="small-input" value="5" min="1" max="20" step="1" inputmode="numeric" oninput="calculateSplits()">
+            <div class="input-field">
+                <label for="years">Tenure (Years)</label>
+                <input type="number" id="years" class="small-input" value="5" min="1" max="20" step="1" inputmode="numeric" oninput="calculateSplits()">
+            </div>
         </div>
-        <div class="status-badge">✅ Live rates verified on 31 Oct 2026</div>
         <div class="winner" id="winnerMsg"></div>
     </div>
 
     <div class="comparison-grid">
         <!-- Unity Bank -->
         <div class="bank-card card-unity">
-            <div>
-                <div class="bank-title">Unity Small Finance Bank</div>
+            <div class="bank-title">Unity Small Finance Bank</div>
+            
+            <div class="metric-group">
                 <div class="metric-row"><span class="metric-label">Effective Rate (Yr 1):</span><span class="metric-value" id="unityRate">0%</span></div>
-                <div class="metric-row"><span class="metric-label">Maturity (<span class="yr-label">5</span>Y):</span><span class="metric-value" id="unityMaturity" style="color:var(--unity)">₹0</span></div>
-                <div class="metric-row"><span class="metric-label">Total Interest:</span><span class="metric-value" id="unityInterest">₹0</span></div>
+                <div class="metric-row"><span class="metric-label">Maturity (<span class="yr-label">5</span>Y):</span><span class="metric-value highlight-value" style="color:var(--unity)" id="unityMaturity">₹0</span></div>
+                <div class="metric-row"><span class="metric-label">Total Interest Earned:</span><span class="metric-value" id="unityInterest">₹0</span></div>
             </div>
-            <div class="split-box"><div class="split-title">Opening Balance Slabs</div><div id="unitySplits"></div></div>
-            <div class="source-link-footer">🔗 <a href="https://unity.bank.in/docs/policies/website-disclosure-effective-4-aug-2026.pdf" target="_blank" rel="noopener">Unity Bank rate disclosure</a></div>
+
+            <div class="earnings-title">Average Interest Breakdown</div>
+            <div class="avg-grid">
+                <div class="avg-box">
+                    <div class="avg-label">Daily</div>
+                    <div class="avg-value small-decimals" id="uDaily">₹0.00</div>
+                </div>
+                <div class="avg-box">
+                    <div class="avg-label">Monthly</div>
+                    <div class="avg-value" id="uMonthly">₹0</div>
+                </div>
+                <div class="avg-box">
+                    <div class="avg-label">Annually</div>
+                    <div class="avg-value" id="uAnnual">₹0</div>
+                </div>
+            </div>
+            
+            <div class="source-link-footer"><a href="https://unity.bank.in/docs/policies/website-disclosure-effective-4-aug-2026.pdf" target="_blank">View Unity Rate Card</a></div>
         </div>
 
         <!-- slice Savings -->
         <div class="bank-card card-slice">
-            <div>
-                <div class="bank-title">slice Savings</div>
+            <div class="bank-title">slice Savings</div>
+            
+            <div class="metric-group">
                 <div class="metric-row"><span class="metric-label">Applicable Rate:</span><span class="metric-value" id="sliceRate">5.50%</span></div>
-                <div class="metric-row"><span class="metric-label">Maturity (<span class="yr-label">5</span>Y):</span><span class="metric-value" id="sliceMaturity" style="color:var(--slice)">₹0</span></div>
-                <div class="metric-row"><span class="metric-label">Total Interest:</span><span class="metric-value" id="sliceInterest">₹0</span></div>
+                <div class="metric-row"><span class="metric-label">Maturity (<span class="yr-label">5</span>Y):</span><span class="metric-value highlight-value" style="color:var(--slice)" id="sliceMaturity">₹0</span></div>
+                <div class="metric-row"><span class="metric-label">Total Interest Earned:</span><span class="metric-value" id="sliceInterest">₹0</span></div>
             </div>
-            <div class="split-box"><div class="split-title">Rate breakdown</div><div id="sliceSplits"></div></div>
-            <div class="source-link-footer">🔗 <a href="https://help.slice.bank.in/support/solutions/articles/84000396024-what-is-the-interest-rate-on-savings-account-" target="_blank" rel="noopener">slice Help Center</a></div>
+
+            <div class="earnings-title">Average Interest Breakdown</div>
+            <div class="avg-grid">
+                <div class="avg-box">
+                    <div class="avg-label">Daily</div>
+                    <div class="avg-value small-decimals" id="sDaily">₹0.00</div>
+                </div>
+                <div class="avg-box">
+                    <div class="avg-label">Monthly</div>
+                    <div class="avg-value" id="sMonthly">₹0</div>
+                </div>
+                <div class="avg-box">
+                    <div class="avg-label">Annually</div>
+                    <div class="avg-value" id="sAnnual">₹0</div>
+                </div>
+            </div>
+            
+            <div class="source-link-footer"><a href="https://help.slice.bank.in/support/solutions/articles/84000396024-what-is-the-interest-rate-on-savings-account-" target="_blank">View slice Rate Info</a></div>
         </div>
 
         <!-- Suryoday FD -->
         <div class="bank-card card-suryoday">
-            <div>
-                <div class="bank-title">Suryoday SFB (Fixed Deposit)</div>
+            <div class="bank-title">Suryoday SFB (FD)</div>
+            
+            <div class="metric-group">
                 <div class="metric-row"><span class="metric-label">Applicable Rate:</span><span class="metric-value" id="suryodayRate">8.25%</span></div>
-                <div class="metric-row"><span class="metric-label">Maturity (<span class="yr-label">5</span>Y):</span><span class="metric-value" id="suryodayMaturity" style="color:var(--suryoday)">₹0</span></div>
-                <div class="metric-row"><span class="metric-label">Total Interest:</span><span class="metric-value" id="suryodayInterest">₹0</span></div>
+                <div class="metric-row"><span class="metric-label">Maturity (<span class="yr-label">5</span>Y):</span><span class="metric-value highlight-value" style="color:var(--suryoday)" id="suryodayMaturity">₹0</span></div>
+                <div class="metric-row"><span class="metric-label">Total Interest Earned:</span><span class="metric-value" id="suryodayInterest">₹0</span></div>
             </div>
-            <div class="split-box"><div class="split-title">FD Details</div><div id="suryodaySplits"></div></div>
-            <div class="source-link-footer">🔗 <a href="https://suryoday.bank.in/personal/deposits/fixed-deposits/" target="_blank" rel="noopener">Suryoday FD Rates</a></div>
+
+            <div class="earnings-title">Average Interest Breakdown</div>
+            <div class="avg-grid">
+                <div class="avg-box">
+                    <div class="avg-label">Daily</div>
+                    <div class="avg-value small-decimals" id="fdDaily">₹0.00</div>
+                </div>
+                <div class="avg-box">
+                    <div class="avg-label">Monthly</div>
+                    <div class="avg-value" id="fdMonthly">₹0</div>
+                </div>
+                <div class="avg-box">
+                    <div class="avg-label">Annually</div>
+                    <div class="avg-value" id="fdAnnual">₹0</div>
+                </div>
+            </div>
+            
+            <div class="source-link-footer"><a href="https://suryoday.bank.in/personal/deposits/fixed-deposits/" target="_blank">View Suryoday FD Rates</a></div>
         </div>
     </div>
 
-    <div class="note"><b>How this works:</b> Unity is simulated using a month-by-month loop (monthly compounding) as balances jump slabs. slice tracks the RBI repo rate exactly and is simulated via daily compounding (interest paid daily). Suryoday is calculated using standard FD quarterly compounding.</div>
+    <div class="note">
+        <b>Calculation Methodology:</b> 
+        Unity Bank utilizes a month-by-month compound simulation to accurately track cross-slab balance jumps. 
+        slice tracks the 100% RBI Repo Rate via exact daily compounding. 
+        Suryoday applies standard Indian banking quarterly compounding for Fixed Deposits. 
+        Averages shown are mean distributions of total interest earned over the selected tenure.
+    </div>
 </div>
 
 <script>
     const RATES = {
         unity: [
-            { upTo: 100000,   rate: 4.50, label: "Up to ₹1L" },
-            { upTo: 500000,   rate: 6.00, label: "₹1L to ₹5L" },
-            { upTo: Infinity, rate: 7.00, label: "Above ₹5L" }
+            { upTo: 100000,   rate: 4.50 },
+            { upTo: 500000,   rate: 6.00 },
+            { upTo: Infinity, rate: 7.00 }
         ],
         slice: 5.50, 
         suryodayFD: function(years) {
@@ -145,21 +225,15 @@
         }
     };
 
-    // Failsafe formatting function
-    const fmt = function(v) {
-        if (isNaN(v)) return "₹0";
+    const fmtInt = function(v) {
+        if (isNaN(v) || v <= 0) return "₹0";
         return "₹" + Math.round(v).toLocaleString('en-IN');
     };
-
-    function rowHtml(title, rate, chunk, annualizedBaseInterest) {
-        return `
-            <div class="slab-element">
-                <div class="slab-header"><span>${title} (${fmt(chunk)})</span><span>@ ${rate.toFixed(2)}%</span></div>
-                <div class="slab-details">
-                    <span>Base annualized: <span class="sub-yield">${fmt(annualizedBaseInterest)}</span></span>
-                </div>
-            </div>`;
-    }
+    
+    const fmtDec = function(v) {
+        if (isNaN(v) || v <= 0) return "₹0.00";
+        return "₹" + v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
 
     function calculateSplits() {
         try {
@@ -169,65 +243,53 @@
             const rawYrs = parseFloat(document.getElementById('years').value);
             const years = Number.isFinite(rawYrs) && rawYrs > 0 ? rawYrs : 1;
 
-            // FIX: Using a classic for-loop instead of .forEach() for maximum webview compatibility
             const yrLabels = document.querySelectorAll('.yr-label');
-            for (let i = 0; i < yrLabels.length; i++) {
-                yrLabels[i].innerText = years;
-            }
+            for (let i = 0; i < yrLabels.length; i++) { yrLabels[i].innerText = years; }
 
-            // --- 1. Unity Bank (Accurate Monthly Simulation) ---
-            let unityBalance = amt;
-            let uFirstMonthHtml = "";
-            let uFirstYearInterest = 0;
+            const totalDays = years * 365;
             const totalMonths = Math.floor(years * 12);
+
+            // --- 1. Unity Bank (Monthly Simulation) ---
+            let unityBalance = amt;
+            let uFirstYearInterest = 0;
             
             for (let m = 1; m <= totalMonths; m++) {
                 let prevSlab = 0;
                 let monthInterest = 0;
-                let htmlTemp = "";
                 
                 for (let s = 0; s < RATES.unity.length; s++) {
                     const slab = RATES.unity[s];
                     if (unityBalance <= prevSlab) break;
                     const chunk = Math.min(unityBalance, slab.upTo) - prevSlab;
-                    const slabInterest = (chunk * (slab.rate / 100)) / 12;
-                    monthInterest += slabInterest;
-                    
-                    if (m === 1) { 
-                        htmlTemp += rowHtml(slab.label, slab.rate, chunk, slabInterest * 12);
-                    }
+                    monthInterest += (chunk * (slab.rate / 100)) / 12;
                     prevSlab = slab.upTo;
                 }
-                
-                if (m === 1) uFirstMonthHtml = htmlTemp;
                 if (m <= 12) uFirstYearInterest += monthInterest;
-                
                 unityBalance += monthInterest;
             }
             
             const uTotalInterest = unityBalance - amt;
-            const uEffRate = amt > 0 ? (uFirstYearInterest / amt * 100) : 0;
+            document.getElementById('unityRate').innerText = (amt > 0 ? (uFirstYearInterest / amt * 100) : 0).toFixed(2) + '%';
+            document.getElementById('unityMaturity').innerText = fmtInt(unityBalance);
+            document.getElementById('unityInterest').innerText = fmtInt(uTotalInterest);
             
-            document.getElementById('unityRate').innerText = uEffRate.toFixed(2) + '%';
-            document.getElementById('unityMaturity').innerText = fmt(unityBalance);
-            document.getElementById('unityInterest').innerText = fmt(uTotalInterest);
-            document.getElementById('unitySplits').innerHTML = amt > 0 ? uFirstMonthHtml : "No balance entered";
+            // Unity Averages
+            document.getElementById('uDaily').innerText = fmtDec(uTotalInterest / totalDays);
+            document.getElementById('uMonthly').innerText = fmtInt(uTotalInterest / totalMonths);
+            document.getElementById('uAnnual').innerText = fmtInt(uTotalInterest / years);
 
             // --- 2. slice Savings (Daily Compounding) ---
-            const sliceBalance = amt * Math.pow(1 + (RATES.slice / 100) / 365, 365 * years);
+            const sliceBalance = amt * Math.pow(1 + (RATES.slice / 100) / 365, totalDays);
             const sTotalInterest = sliceBalance - amt;
             
             document.getElementById('sliceRate').innerText = RATES.slice.toFixed(2) + '%';
-            document.getElementById('sliceMaturity').innerText = fmt(sliceBalance);
-            document.getElementById('sliceInterest').innerText = fmt(sTotalInterest);
-            document.getElementById('sliceSplits').innerHTML = amt > 0 ? `
-                <div class="slab-element">
-                    <div class="slab-header"><span>Flat Repo-Linked Rate</span><span>@ ${RATES.slice.toFixed(2)}%</span></div>
-                    <div class="slab-details">
-                        <span>Compounding: <span class="sub-yield">Daily</span></span>
-                        <span>Avg Yrly: <span class="sub-yield">${fmt(sTotalInterest/years)}</span></span>
-                    </div>
-                </div>` : "No balance entered";
+            document.getElementById('sliceMaturity').innerText = fmtInt(sliceBalance);
+            document.getElementById('sliceInterest').innerText = fmtInt(sTotalInterest);
+
+            // slice Averages
+            document.getElementById('sDaily').innerText = fmtDec(sTotalInterest / totalDays);
+            document.getElementById('sMonthly').innerText = fmtInt(sTotalInterest / totalMonths);
+            document.getElementById('sAnnual').innerText = fmtInt(sTotalInterest / years);
 
             // --- 3. Suryoday FD (Quarterly Compounding) ---
             const fdRate = RATES.suryodayFD(years);
@@ -235,36 +297,29 @@
             const fdTotalInterest = fdBalance - amt;
             
             document.getElementById('suryodayRate').innerText = fdRate.toFixed(2) + '%';
-            document.getElementById('suryodayMaturity').innerText = fmt(fdBalance);
-            document.getElementById('suryodayInterest').innerText = fmt(fdTotalInterest);
-            
-            document.getElementById('suryodaySplits').innerHTML = amt > 0 ? `
-                <div class="slab-element">
-                    <div class="slab-header"><span>Fixed Tenure Rate (${years}Y)</span><span>@ ${fdRate.toFixed(2)}%</span></div>
-                    <div class="slab-details">
-                        <span>Compounding: <span class="sub-yield">Quarterly</span></span>
-                        <span>Avg Yrly: <span class="sub-yield">${fmt(fdTotalInterest/years)}</span></span>
-                    </div>
-                </div>` : "No balance entered";
+            document.getElementById('suryodayMaturity').innerText = fmtInt(fdBalance);
+            document.getElementById('suryodayInterest').innerText = fmtInt(fdTotalInterest);
 
-            // --- Determine the Winner ---
+            // Suryoday Averages
+            document.getElementById('fdDaily').innerText = fmtDec(fdTotalInterest / totalDays);
+            document.getElementById('fdMonthly').innerText = fmtInt(fdTotalInterest / totalMonths);
+            document.getElementById('fdAnnual').innerText = fmtInt(fdTotalInterest / years);
+
+            // --- Winner Logic ---
             const w = document.getElementById('winnerMsg');
             if (amt <= 0) {
-                w.innerText = "";
+                w.innerText = "Enter an amount to see projections.";
             } else {
                 let maxInt = Math.max(uTotalInterest, sTotalInterest, fdTotalInterest);
                 let winner = "Suryoday FD";
                 if (maxInt === uTotalInterest) winner = "Unity Bank Savings";
                 if (maxInt === sTotalInterest) winner = "slice Savings";
                 
-                w.innerText = `🏆 ${winner} yields the highest absolute return over ${years} year(s).`;
+                w.innerHTML = `🏆 <b>${winner}</b> yields the highest absolute return over ${years} year(s).`;
             }
-        } catch (e) {
-            console.error("Calculation Error: ", e);
-        }
+        } catch (e) { console.error(e); }
     }
 
-    // FIX: Execute calculation directly instead of waiting for window.onload
     calculateSplits();
 </script>
 </body>
